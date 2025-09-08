@@ -41,7 +41,7 @@ def get_conversational_chain(tools: List, question: str) -> dict:
         ])
 
         agent = create_tool_calling_agent(llm, tools, prompt)
-        agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+        agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=False)
         return agent_executor.invoke({"input": question})
     except Exception as e:
         print(f"对话链执行错误: {str(e)}")
