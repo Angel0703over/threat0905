@@ -96,6 +96,7 @@ def detectee_type(tracks):
         for track in tracks:
             grouped_tracks[track[7]].append(track)
         logger.info("使用rag进行装备类型与装备能力检索")
+        feature_list = {}
         for target, target_tracks in grouped_tracks.items():
             if len(target_tracks) < 2:
                 continue
@@ -107,13 +108,28 @@ def detectee_type(tracks):
             velocity_d = float(velocity)
             heading_d = float(heading)
             # 使用检索增强进行装备类型匹配
-            detectee_type, description = type_match(
-                feature=f"当前装备的平台名称为：{target}, 该武器的飞行高度为：{altitude}m，飞行速度为：{velocity_d}m/s",
-                type_list=json.loads(open('resource/type.json').read())
-            )
-            logger.info(f"装备{target}的预测类型为：{detectee_type}")
-            logger.info(f"当前装备为{target},阵营为{previous_track[8]},装备速度为{str(velocity_d)}m/s,装备航向角为{heading_d}度,最后出现的位置为: 纬度为{previous_track[11]}，经度为{previous_track[12]}，高度为{previous_track[13]}")
+            feature = [velocity_d, heading_d, altitude, f"当前装备的平台名称为：{target}, 该武器的飞行高度为：{altitude}m，飞行速度为：{velocity_d}m/s"]
+            # feature_list.append(f"当前装备的平台名称为：{target}, 该武器的飞行高度为：{altitude}m，飞行速度为：{velocity_d}m/s")
+            feature_list[target] = feature
+
+        match_result = type_match(
+            feature=[v[3] for v in feature_list.values()],
+            type_list=json.loads(open('resource/type.json', encoding='utf-8').read()),
+        )
+        logger.info(match_result)
+        logger.info(feature_list)
+        for target, target_tracks in grouped_tracks.items():
+            # print(feature_list)
+            feature = feature_list[target]
+            logger.info(feature)
+            target_result = match_result[0][target]
+            logger.info(target_result)
+            detectee_type = target_result.get('type')
+            description = target_result.get('description')
+            selected_tracks = target_tracks[-1]
+            logger.info(f"当前装备为{target},预测类型为：{detectee_type},阵营为{selected_tracks[8]},装备速度为{str(feature[0])}m/s,装备航向角为{feature[1]}度,最后出现的位置为: 纬度为{selected_tracks[11]}，经度为{selected_tracks[12]}，高度为{selected_tracks[13]}")
             target_type_dict[target] = {detectee_type: description}
+
         type_ability = []
         type_list = []
         updated_tracks = []
@@ -133,7 +149,7 @@ def detectee_type(tracks):
     except Exception as e:
         logger.warning("类型预测错误，调用失败"+ str(e))
         return "500", (" ", "")
-def type_match(feature:str, type_list:dict) -> [str,str]:
+def type_match(feature:list, type_list:dict) -> [str,str]:
     """
     使用输入特征，结合检索增强进行类型匹配
     :param feature:武器特征
@@ -143,14 +159,15 @@ def type_match(feature:str, type_list:dict) -> [str,str]:
         question=PromptLoader.get_prompt(
             prompt_name='rag/detect_type.prompt',
             type_list=type_list,
-            feature=feature
+            feature_list=feature
         ),
         db_name='knowledge_lib',
         db_path='./resource/knowledge_db'
     )
     output = result.get('output')
-    json_body = response_extractor(output)
+    json_body = response_extractor(output).get('data')
+    print(json_body)
     # 返回装备类型和装备描述
-    return json_body.get("type"), json_body.get("description")
+    return json_body
 
 
