@@ -97,7 +97,8 @@ case = desp_trans(groups, shape, style, combat_case)
 print(case)
 
 code, sample = sample_analysis(case, type_ability, new_tracks, [line.strip().split(",") for line in open("resource/important.csv", "r").readlines()])
+print("作战样例分析："+code)
 print(sample)
 
-# print(get_threat_score(case))
+print(get_threat_score(case))
 
