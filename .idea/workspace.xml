@@ -5,20 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89108be3-ee4a-423a-84da-9669e9d5e2bb" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/pre_tracks.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/prompt/chat/dmo_analysis.prompt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/important.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resource/style_list.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test/output.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/predict_targets.py" beforeDir="false" afterPath="$PROJECT_DIR$/predict_targets.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/prompt/rag/detect_type.prompt" beforeDir="false" afterPath="$PROJECT_DIR$/prompt/rag/detect_type.prompt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/prompt/test/test.prompt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prompt/chat/dmo_analysis.prompt" beforeDir="false" afterPath="$PROJECT_DIR$/prompt/chat/dmo_analysis.prompt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sample.py" beforeDir="false" afterPath="$PROJECT_DIR$/sample.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/t_for_rag.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/type.py" beforeDir="false" afterPath="$PROJECT_DIR$/type.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/util.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,7 +54,7 @@
       <recent name="E:\Self_code\PycharmProjects\threat0905\prompt\test" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.sample">
+  <component name="RunManager" selected="Python.run">
     <configuration name="run" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="threat0905" />
       <option name="ENV_FILES" value="" />
@@ -135,8 +126,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.sample" />
         <item itemvalue="Python.run" />
+        <item itemvalue="Python.sample" />
         <item itemvalue="Python.util" />
       </list>
     </recent_temporary>
@@ -159,7 +150,7 @@
       <updated>1756967266065</updated>
       <workItem from="1756967267265" duration="3391000" />
       <workItem from="1757381755170" duration="20565000" />
-      <workItem from="1757467192728" duration="4576000" />
+      <workItem from="1757467192728" duration="6501000" />
     </task>
     <servers />
   </component>
@@ -183,9 +174,9 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/threat0905$sample.coverage" NAME="sample Coverage Results" MODIFIED="1757472562036" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/threat0905$sample.coverage" NAME="sample Coverage Results" MODIFIED="1757473481813" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/threat$run.coverage" NAME="run Coverage Results" MODIFIED="1756968992691" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/threat0905$util.coverage" NAME="util Coverage Results" MODIFIED="1757406287536" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/threat0905$run.coverage" NAME="run Coverage Results" MODIFIED="1757469050871" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/threat0905$run.coverage" NAME="run Coverage Results" MODIFIED="1757473976723" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

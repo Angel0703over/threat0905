@@ -10,6 +10,19 @@ from prompt.prompt_loader import PromptLoader
 from util import response_extractor
 import json
 from loguru import logger
+def calculate_distance(previous_track, current_track):
+    earth_radius = 6371000
+    lat1_rad = math.radians(float(previous_track[11]))
+    lon1_rad = math.radians(float(previous_track[12]))
+    lat2_rad = math.radians(float(current_track[11]))
+    lon2_rad = math.radians(float(current_track[12]))
+
+    vertical_distance = abs(float(previous_track[13]) - float(current_track[13]))
+    a = math.sin((lat2_rad - lat1_rad) / 2) ** 2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin((lon2_rad - lon1_rad) / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    horizontal_distance = earth_radius * c
+    three_d_distance = math.sqrt(horizontal_distance ** 2 + vertical_distance ** 2)
+    return three_d_distance
 def _calculate_velocity(previous_track, current_track):
     """
     根据同一装备的两个不同轨迹点进行装备速度计算

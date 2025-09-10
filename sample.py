@@ -9,27 +9,33 @@ from base import LLMClient
 from prompt.prompt_loader import PromptLoader
 from util import response_extractor
 from predict_targets import predict_targets
+from loguru import logger
 def sample_analysis(desp, type_ability, in_track, important):
     """
     使用轨迹数据的分析结果生成对应的作战样例分析
     :param desp:根据轨迹数据的分析结果
     """
-    targets = predict_targets(in_track, important)
-    print(targets)
-    input()
-    llm = LLMClient(llm_config=configs.QWEN3_LOCAL_CONFIG)
-    result = llm.infer(
-        system_prompt='',
-        user_prompt=PromptLoader.get_prompt(
-            prompt_name='chat/dmo_analysis.prompt',
-            type = type_ability,
-            description=desp
+    try:
+        targets = predict_targets(in_track, important)
+        # print(targets)
+        # input()
+        llm = LLMClient(llm_config=configs.QWEN3_LOCAL_CONFIG)
+        result = llm.infer(
+            system_prompt='',
+            user_prompt=PromptLoader.get_prompt(
+                prompt_name='chat/dmo_analysis.prompt',
+                type = type_ability,
+                description=desp,
+                targets=targets
+            )
         )
-    )
-    print(result)
-    x = response_extractor(result).get("result")
-    print(x)
-
+        # print(result)
+        x = response_extractor(result).get("result")
+        # print(x)
+        return "200", x
+    except Exception as e:
+        logger.warning("案例分析错误，调用失败："+str(e))
+        return "500", ""
 
 
 if __name__ == '__main__':
@@ -45,4 +51,5 @@ if __name__ == '__main__':
                     in_track=[line.strip().split(",") for line in open("pre_tracks.csv", "r").readlines()],
                     important=[line.strip().split(",") for line in open("resource/important.csv", "r").readlines()]
                     )
+
 

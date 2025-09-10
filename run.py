@@ -6,6 +6,7 @@ from style import predict_style as PreStyle
 from group_shape import group_shape as GroupShape, detectee_group as DetecteeGroup
 from type import detectee_type as PreType
 from rag_tool import get_threat_score
+from sample import sample_analysis as PreSample
 from typing import Union, List, Dict, Tuple
 import time
 import pandas as pd
@@ -38,7 +39,8 @@ def predict_style(tracks: list[list[str]], groups: [str, list[str]]) -> Tuple[st
     input_check(tracks)
     return PreStyle(tracks, groups)
 
-
+def sample_analysis(desp, type_ability, in_track, important) -> Tuple[str, str]:
+    return PreSample(desp, type_ability, in_track, important)
 
 def desp_trans(groups, shape, style, case):
     group = {}
@@ -89,10 +91,13 @@ df.to_csv('./pre_tracks.csv', header=False, index=False)
 code, style = predict_style(new_tracks, groups)
 print("作战样式预测："+code)
 print(style)
-combat_case = """
-在东南部某近岸海域，海水温度为 32 摄氏度，风速 30m/s，过去 48 小时累计降水量 220mm，海洋流速 2.1m/s，该区域平均水深 15 米，电磁干扰中高频长、中、短波（0.1-30MHz）强度 28V/m，超短波（30-300MHz）强度 24V/m。敌方采用有人 / 无人协同压制打击，XQ-58A 隐身无人机作为 “忠诚僚机” 前置与 F-35C 隐身战斗机协同行动，试图对我方航母、驱逐舰与护卫舰及台岛封控区域实施打击。30m/s 的强风对战机飞行姿态控制提出极高要求，增加了战机编队协同难度，220mm 的大量降水导致能见度极低，影响战机雷达探测精度，且高温高湿环境加速战机设备老化，强电磁干扰则干扰了战机间的数据传输，我方借此环境，加强对空域的警戒监测，针对战机协同弱点和探测盲区，部署额外防空力量，抵御敌方打击。
-"""
+
+combat_case = ""
 case = desp_trans(groups, shape, style, combat_case)
 print(case)
-print(get_threat_score(case))
+
+code, sample = sample_analysis(case, type_ability, new_tracks, [line.strip().split(",") for line in open("resource/important.csv", "r").readlines()])
+print(sample)
+
+# print(get_threat_score(case))
 
