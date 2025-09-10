@@ -4,7 +4,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.vectorstores import FAISS
 from langchain.tools.retriever import create_retriever_tool
 from langchain.agents import AgentExecutor, create_tool_calling_agent
-from langchain_community.embeddings import DashScopeEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_openai import ChatOpenAI
 from prompt.prompt_loader import PromptLoader
 from base import LLMClient
@@ -18,7 +18,7 @@ VECTOR_DBS = {
     "space": "./resource/space_db",
     "combat": "./resource/combat_db"
 }
-EMBEDDING_MODEL = "text-embedding-v4"
+EMBEDDING_MODEL = "E:\\AI\\model\\Qwen3-Embedding-0.6B"
 DEFAULT_K = 1  # 每个数据库返回的相似案例数
 
 def get_conversational_chain(tools: List, question: str) -> dict:
@@ -54,10 +54,7 @@ def query_single_db(question: str, db_path: str, db_name: str):
     :param db_path:案例库路径
     """
     try:
-        embeddings: DashScopeEmbeddings = DashScopeEmbeddings(
-            model=EMBEDDING_MODEL,
-            dashscope_api_key=Dashscope_Api_Key
-        )
+        embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
         db: FAISS = FAISS.load_local(
             db_path,
             embeddings,
@@ -66,8 +63,8 @@ def query_single_db(question: str, db_path: str, db_name: str):
         retriever = db.as_retriever()
         retrieval_tool = create_retriever_tool(
             retriever,
-            f"extractor_{db_name}",
-            f"从{db_name}数据库的案例中查询信息"
+            f"information_extractor",
+            f"从数据库的案例中查询信息"
         )
 
         return get_conversational_chain([retrieval_tool], question)
@@ -83,10 +80,7 @@ def get_db_similar_case(db_name: str, query_text: str, key: str) -> str:
     :param key: 要查询的维度key
     """
     db_path = VECTOR_DBS[key]
-    embeddings = DashScopeEmbeddings(
-        model=EMBEDDING_MODEL,
-        dashscope_api_key=Dashscope_Api_Key
-    )
+    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
     try:
         db = FAISS.load_local(db_path, embeddings, allow_dangerous_deserialization=True)
         key_specific_query = f"针对{key}维度的信息：{query_text}"
