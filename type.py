@@ -145,10 +145,10 @@ def detectee_type(tracks):
                     type_list.append(next(iter(target_type_dict[track[7]].keys())))
         # 返回更新后的轨迹，装备类型对应的装备能力
 
-        return "200", (updated_tracks, type_ability)
+        return "200", (updated_tracks, type_ability, feature_list)
     except Exception as e:
         logger.warning("类型预测错误，调用失败"+ str(e))
-        return "500", (" ", "")
+        return "500", (" ", "", " ")
 def type_match(feature:list, type_list:dict) -> [str,str]:
     """
     使用输入特征，结合检索增强进行类型匹配

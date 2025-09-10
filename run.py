@@ -1,3 +1,5 @@
+import json
+
 from prompt.prompt_loader import PromptLoader
 from pre_track import PredictTrack as PreTrack
 from style import predict_style as PreStyle
@@ -12,7 +14,7 @@ def input_check(tracks: list[list[str]]) -> None:
         item.extend([""] * (23 - len(item)))
 
 
-def detectee_type(tracks: List[List[str]]) -> Tuple[str, Union[str, Tuple[List[List[str]], List[Dict[str, str]]]]]:
+def detectee_type(tracks: List[List[str]]) -> Tuple[str, Union[str, Tuple[List[List[str]], List[Dict[str, str]], Dict[str, List]]]]:
 
     input_check(tracks)
     return PreType(tracks)
@@ -48,9 +50,10 @@ def desp_trans(groups, shape, style, case):
     for k, v in group.items():
         case += f"编队{k}包含武器装备为：{v};"
     for k, v in shape.items():
-        case += f"第{v[0]}编组中心位置为：纬度 {v[0]}, 经度 {v[1]}, 高度 {v[2]} 米， 编队空间范围为：纬轴 {v[3]} 米, 经轴 {v[4]} 米, 高轴 {v[5]} 米，编队方向姿态为：偏航 {v[6]} 度, 俯仰 {v[7]} 度, 滚转 {v[8]} 度 ; "
+        case += f"第{k}编组中心位置为：纬度 {v[0]}, 经度 {v[1]}, 高度 {v[2]} 米， 编队空间范围为：纬轴 {v[3]} 米, 经轴 {v[4]} 米, 高轴 {v[5]} 米，编队方向姿态为：偏航 {v[6]} 度, 俯仰 {v[7]} 度, 滚转 {v[8]} 度 ; "
+    style_list = json.loads(open('resource/style_list.json', encoding='utf-8').read())
     for k, v in style.items():
-        case += f"第{k}编组的作战样式为：类别{v};"
+        case += f"第{k}编组的作战样式为：{style_list[v[0]]};"
     return case
 
 # 输入作战样例
@@ -65,8 +68,9 @@ PromptLoader.from_paths(['prompt'])
 code, content = detectee_type(tracks)
 print(time.time()-stat)
 print("装备类型判断："+code)
-tracks, type_ability = content
+tracks, type_ability, feature_list = content
 print(type_ability)
+print(feature_list)
 
 code, groups = detectee_group(tracks)
 print("编队判断："+code)

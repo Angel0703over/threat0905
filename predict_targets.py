@@ -43,15 +43,18 @@ def _lla_to_enu(lat, lon, alt, ref_lat=25, ref_lon=121, ref_alt=0):
 
 
 def _calculate_velocity_and_acceleration(tracks):
+
     tracks_by_id = defaultdict(list)
     for track in tracks:
         tracks_by_id[track[7]].append(track)
 
     result_tracks = []
     n = []
+    # track_id为装备名，track_list为装备的轨迹信息（多个）
     for track_id, track_list in tracks_by_id.items():
         track_list.sort(key=lambda x: x[0])
 
+        # 提取位置和时间信息
         positions = np.array([[track[23], track[24], track[25]] for track in track_list])
         times = np.array([track[1] for track in track_list])
 
@@ -147,6 +150,7 @@ def predict_targets(in_tracks, important):
             else:
                 imp[i] = float(imp[i])
         imp_lat, imp_lon, imp_alt = float(imp[11]), float(imp[12]), float(imp[13])
+        #将红方防御设施点经纬高坐标（LLA）转换为以参考点为中心的ENU（东-北-天）坐标系下的坐标
         imp_x, imp_y, imp_z = _lla_to_enu(imp_lat, imp_lon, imp_alt)
         imp.extend([imp_x, imp_y, imp_z])
 
@@ -159,10 +163,12 @@ def predict_targets(in_tracks, important):
             else:
                 track[i] = float(track[i])
         track_lat, track_lon, track_alt = float(track[11]), float(track[12]), float(track[13])
+        # 将蓝方武器轨迹点的经纬高坐标（LLA）转换为以参考点为中心的ENU（东-北-天）坐标系下的坐标
         track_x, track_y, track_z = _lla_to_enu(track_lat, track_lon, track_alt)
         track.extend([track_x, track_y, track_z])
         tracks.append(track)
 
+    # 计算装备的速度和加速度， n代表轨迹的个数 ，n[i]代表第i个装备的轨迹点总数
     tracks, n = _calculate_velocity_and_acceleration(tracks)
 
     i = 0
@@ -170,9 +176,10 @@ def predict_targets(in_tracks, important):
     cal = 0
 
     for i in range(len(n)):
-        j = cal + n[i] // 2 - 1
-        track = tracks[j]
-        cal = cal + n[i]
+        # 遍历每条轨迹，取中间时刻的目标状态（位置、速度、加速度）
+        j = cal + n[i] // 2 - 1 # 中间时刻的轨迹索引
+        track = tracks[j] # 中间时刻的轨迹
+        cal = cal + n[i] # 更新轨迹索引
 
         track_dict = {
             "ID": track[7],
@@ -192,10 +199,13 @@ def predict_targets(in_tracks, important):
 
         for imp in important:
             imp_dict = {"ID": imp[7], "Latitude": imp[11], "Longitude": imp[12], "Altitude": imp[13], "x": imp[23], "y": imp[24], "z": imp[25]}
+            # 计算目标对象相对于关键位置的航向角
             course_angle = _calculate_course_angle(track_dict, imp_dict)
+            # 计算到达时间
             arrival_time = _calculate_arrival_time(track_dict, imp_dict, course_angle)
             arrival_time = arrival_time - (tracks[cal - 1][1] - tracks[j][1])
             arrival_time = arrival_time if arrival_time > 0 else 0
+            # 计算目标对象相对于关键位置的受袭概率
             if course_angle < math.pi / 2:
                 threat_score = math.exp(-abs(course_angle))
             else:
