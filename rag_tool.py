@@ -8,8 +8,9 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.vectorstores import FAISS
 from langchain.tools.retriever import create_retriever_tool
 from langchain.agents import AgentExecutor, create_tool_calling_agent
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_openai import ChatOpenAI
+from CustomLLM import CustomLLM
 import configs
 from util import response_extractor
 from prompt.prompt_loader import PromptLoader
@@ -32,6 +33,7 @@ COMBAT_ATTR_COUNT = 6
 Position = Tuple[float, float, float]
 
 
+# ========== 小工具：地理、文件读取等 ==========
 def calculate_distance(pos1: Position, pos2: Position) -> float:
     """基于经纬度和高度（米）计算近似距离（公里）。"""
     lat1, lon1, alt1 = pos1
@@ -124,6 +126,7 @@ def get_conversational_chain(tools: List, question: str) -> dict:
     except Exception as e:
         print(f"对话链执行错误: {str(e)}")
         raise
+
 
 
 def query_single_db(question: str, db_path: str, db_name: str):
@@ -274,32 +277,61 @@ def calculate_scores(
         distance_score = 1.0 + 1.0 * (D_mid - distance_km) / max(D_mid, 1e-6)
     # 相对接近速度
     relative_speed_score = 0.0
+
     if feature_list and equipment_list_1:
         speeds = []
         for equip in equipment_list_1:
             equip_id = equip.get('id', '')
             if equip_id in feature_list:
+                # 提取速度数据并转换为浮点数（保留原始逻辑）
                 speed_mps = safe_float(feature_list[equip_id][0], 0.0)
                 speeds.append(speed_mps)
+        
         if speeds:
+            # 计算平均马赫数（1马赫 = 343米/秒）
             avg_speed_ma = (sum(speeds) / len(speeds)) / 343.0
-            if avg_speed_ma <= 0.8:
+            
+            # 新的分段逻辑：更精细的区间划分，扩大低速度区间的区分度
+            if avg_speed_ma <= 0.3:
                 relative_speed_score = 0.0
-            elif 0.8 < avg_speed_ma <= 2.0:
-                relative_speed_score = 1.0 * (avg_speed_ma - 0.8) / 1.2
+            elif 0.3 < avg_speed_ma <= 0.5:
+                relative_speed_score = 0.2 + (avg_speed_ma - 0.3) / 0.2 * 0.3  # 0.2-0.5分
+            elif 0.5 < avg_speed_ma <= 0.7:
+                relative_speed_score = 0.5 + (avg_speed_ma - 0.5) / 0.2 * 0.3  # 0.5-0.8分
+            elif 0.7 < avg_speed_ma <= 1.0:
+                relative_speed_score = 0.8 + (avg_speed_ma - 0.7) / 0.3 * 0.2  # 0.8-1.0分
+            elif 1.0 < avg_speed_ma <= 2.0:
+                relative_speed_score = 1.0 + (avg_speed_ma - 1.0) / 1.0 * 0.5  # 1.0-1.5分
             else:
-                relative_speed_score = 1.0 + 1.0 * (avg_speed_ma - 2.0) / 1.0
+                relative_speed_score = 1.5 + (avg_speed_ma - 2.0) / 1.0 * 0.5  # 1.5-2.0分
+                
+            # 确保分数不超过最大值
+            relative_speed_score = min(relative_speed_score, 2.0)
 
     # 目标密度指数
     N_targets = len(equipment_list_1)
     V_ellipsoid = (4.0 / 3.0) * math.pi * max(semi_x, 0.0) * max(semi_y, 0.0) * max(semi_z, 0.0)
     density = N_targets / V_ellipsoid if V_ellipsoid > 0 else 0.0
-    if density <= 0.01:
+    if density <= 0.002:
         density_score = 0.0
-    elif 0.01 < density <= 0.05:
-        density_score = 1.0 * (density - 0.01) / 0.04
+    elif 0.002 < density <= 0.005:
+        # 0.002到0.005之间映射到0.0-0.3分
+        density_score = (density - 0.002) / 0.003 * 0.3
+    elif 0.005 < density <= 0.01:
+        # 0.005到0.01之间映射到0.3-0.6分
+        density_score = 0.3 + (density - 0.005) / 0.005 * 0.3
+    elif 0.01 < density <= 0.03:
+        # 0.01到0.03之间映射到0.6-1.2分
+        density_score = 0.6 + (density - 0.01) / 0.02 * 0.6
+    elif 0.03 < density <= 0.05:
+        # 0.03到0.05之间映射到1.2-1.6分
+        density_score = 1.2 + (density - 0.03) / 0.02 * 0.4
     else:
-        density_score = 1.0 + 1.0 * (density - 0.05) / 0.05
+        # 超过0.05映射到1.6-2.0分
+        density_score = 1.6 + (density - 0.05) / 0.05 * 0.4
+
+    # 确保分数在0-2.0范围内
+    density_score = max(0.0, min(density_score, 2.0))
 
     # 部署集中度
     min_axis = min(semi_x, semi_y, semi_z)
@@ -606,6 +638,19 @@ if __name__ == "__main__":
     敌方通过运输机投放 30 架 X-61A 与 20 架 ALTIUS-600 无人机 / 蜂群，试图袭扰我方航母战斗群。无人机初始距航母 300km，抵近至 100km 时受干扰滞留，最终停留在 80km 处，巡航速度仅 0.3-0.6Ma，50 架无人机分散在 50km² 空域，密度低且编队松散，仅 X-61A 搭载少量炸药，受暴雨影响其光电传感器对我方舰艇覆盖率仅 35%。作战中，无人机依赖后方指令，干扰导致指令延迟 22 分钟，打击成功率降至 30%，后续支援需 40 分钟抵达，强风还使无人机续航从 4 小时缩至 2.5 小时。
     我方启动电子对抗系统，切断 60% 无人机通信，利用 800 米航线偏移布设警戒点，最终拦截 48 架，剩余 2 架因炸药引信受潮失效未造成损伤，防空资源消耗仅为常规的 15%。
     """
+    envelope_data_1, equipment_list_1, envelope_data_2, targets = process_shape_and_groups_data(shape, groups, new_tracks, important_file="resource/important.csv")
+
+    scores = calculate_scores(
+    envelope_data_1 = envelope_data_1,
+    equipment_list_1=equipment_list_1,
+    envelope_data_2=envelope_data_2,
+    feature_list=feature_list,
+    type_ability=type_ability,
+    targets=targets,
+    important_file = "./resource/important.csv")
+
+    for key, value in scores.items():
+        print(f"{key}: {value}")
 
     code, score = get_threat_score(case,shape,groups,feature_list,type_ability,new_tracks,important_file="resource/important.csv")
     print("威胁评估："+code)
