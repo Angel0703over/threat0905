@@ -177,7 +177,7 @@ def get_db_similar_case(db_name: str, query_text: str, key: str) -> str:
 def classify_level(description: str) -> Dict[str, str]: 
     """对输入描述进行分级""" 
     llm = LLMClient(configs.QWEN3_LOCAL_CONFIG) 
-    prompt = PromptLoader.get_prompt( prompt_name='rag/new_classification.prompt', comprehensive_threat_description=description ) 
+    prompt = PromptLoader.get_prompt( prompt_name='rag/classification.prompt', comprehensive_threat_description=description ) 
     llm_response = llm.infer( 
         system_prompt='你是一个专业的海上多维度威胁分级专家，必须严格按照以下规则输出：\n' 
         '1. 仅输出包含"environment""combat"的JSON格式结果\n' 
