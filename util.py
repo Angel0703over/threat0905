@@ -23,5 +23,16 @@ def result_print(desp, result: list):
 
 
 if __name__ == '__main__':
+    print(response_extractor(
+        """
+                        ```json
+        {
+            "result": {
+                "regex": r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3})",
+                "datetime": "%Y-%m-%d %H:%M:%S,%f"
+            }
+        }
+            """
+    ))
     pass
 

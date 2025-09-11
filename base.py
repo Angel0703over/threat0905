@@ -85,7 +85,7 @@ class LLMClient:
         """带重试机制的聊天补全请求"""
         try:
             response = self.client.chat.completions.create(**params)
-            logger.debug(f"LLM 请求成功: {params}")
+            # logger.debug(f"LLM 请求成功: {params}")
             return response
         except (APIError, APIConnectionError) as e:
             logger.warning(f"LLM 请求失败（可重试）: {e}, params={params}")
