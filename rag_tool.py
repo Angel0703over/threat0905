@@ -403,26 +403,33 @@ def calculate_scores(
             for target_id, prob_info in (target_dict or {}).items():
                 if isinstance(prob_info, (list, tuple)) and len(prob_info) >= 1:
                     try:
+                        # 直接提取概率值，不做过滤（保留所有有效数值）
                         probability = safe_float(prob_info[0], None)
                         if probability is None:
-                            continue
-                        # 如果概率是 0-1 范围，放大到百分比
+                            continue  # 跳过无法转换的无效值
+                            
+                        # 统一转换为百分比（如果是0-1范围的小数）
                         if 0 <= probability <= 1:
                             probability *= 100.0
+                            
+                        # 仅保留合理范围的概率值（0-100%）
                         if 0 <= probability <= 100:
                             total_probability += probability
                             prob_count += 1
                     except Exception:
-                        continue
-    avg_probability = (total_probability / prob_count) if prob_count > 0 else 0.0
-    if avg_probability <= 30:
-        kill_chain_score = 0.0
-    elif 30 < avg_probability <= 70:
-        kill_chain_score = 1.0 * (avg_probability - 30) / 40
-    else:
-        kill_chain_score = 1.0 + 1.0 * (avg_probability - 70) / 30
+                        continue  # 忽略任何异常，继续处理下一个
 
-    # 支援到达时间（基于 envelope_data_2）
+    # 计算平均概率
+    avg_probability = (total_probability / prob_count) if prob_count > 0 else 0.0
+    # 计算分数
+    if avg_probability <= 0.3:
+        kill_chain_score = 0.0
+    elif 0.3 < avg_probability <= 0.7:
+        kill_chain_score = 1.0 * (avg_probability - 0.3) / 4
+    else:
+        kill_chain_score = 1.0 + 1.0 * (avg_probability - 0.7) / 3
+
+    # 支援到达时间
     support_time_score = 0.0
     if envelope_data_2 and feature_list:
         support_lat = safe_float(envelope_data_2[0]); support_lon = safe_float(envelope_data_2[1]); support_alt = safe_float(envelope_data_2[2])
