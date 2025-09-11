@@ -12,6 +12,7 @@ from langchain.tools.retriever import create_retriever_tool
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_openai import ChatOpenAI
+from CustomLLM import CustomLLM
 import configs
 from util import response_extractor
 from prompt.prompt_loader import PromptLoader
@@ -104,45 +105,27 @@ def get_combat_radius_from_type(equip_type: str, type_ability: Optional[List[Dic
 # ========== LLM / 检索 ==========
 def get_conversational_chain(tools: List, question: str) -> dict:
     """
-    使用requests执行检索任务
+    使用agent执行检索任务
     :param tools: agent可用的工具列表
     :param question:输入问题
     """
     try:
-        # 获取配置
-        model_name = configs.QWEN3_LOCAL_CONFIG.get("model")
-        base_url = configs.QWEN3_LOCAL_CONFIG.get("base_url")
-        api_key = configs.QWEN3_LOCAL_CONFIG.get("api_key")
-        
-        # 构造请求URL
-        url = f"{base_url}/chat/completions"
-        # 构造请求头
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-        # 构造请求数据
-        data = {
-            "model": model_name,
-            "messages": [
-                {"role": "system", "content": ""},
-                {"role": "user", "content": question}
-            ],
-            "temperature": 0.7
-        }
-        
-        # 发送请求
-        response = requests.post(url, headers=headers, json=data, timeout=300)
-        response.raise_for_status()  # 如果响应状态码不是200会抛出异常
-        # 解析响应
-        response_data = response.json()
-        response_content = response_data["choices"][0]["message"]["content"]
-        
-        # 返回模拟的响应格式，保持与原函数兼容
-        return {
-            "input": question,
-            "output": response_content
-        }
+        llm = CustomLLM(
+            model_name=configs.QWEN3_LOCAL_CONFIG.get("model"),
+            base_url=configs.QWEN3_LOCAL_CONFIG.get("base_url"),
+            api_key=configs.QWEN3_LOCAL_CONFIG.get("api_key"),
+            generate_config=configs.QWEN3_LOCAL_CONFIG.get("generate_config")
+        )
+        prompt = ChatPromptTemplate.from_messages([
+            ("system",""),
+            ("placeholder", "{chat_history}"),
+            ("human", "{input}"),
+            ("placeholder", "{agent_scratchpad}"),
+        ])
+
+        agent = create_tool_calling_agent(llm, tools, prompt)
+        agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=False)
+        return agent_executor.invoke({"input": question})
     except Exception as e:
         print(f"对话链执行错误: {str(e)}")
         raise
