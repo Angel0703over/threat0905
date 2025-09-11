@@ -428,7 +428,7 @@ def calculate_scores(
         kill_chain_score = 1.0 * (avg_probability - 0.3) / 4
     else:
         kill_chain_score = 1.0 + 1.0 * (avg_probability - 0.7) / 3
-
+    
     # 支援到达时间
     support_time_score = 0.0
     if envelope_data_2 and feature_list:

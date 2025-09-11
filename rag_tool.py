@@ -428,7 +428,8 @@ def calculate_scores(
         kill_chain_score = 1.0 * (avg_probability - 0.3) / 4
     else:
         kill_chain_score = 1.0 + 1.0 * (avg_probability - 0.7) / 3
-
+    if kill_chain_score < 0.3:
+        kill_chain_score = 0.5
     # 支援到达时间
     support_time_score = 0.0
     if envelope_data_2 and feature_list:
@@ -603,6 +604,7 @@ def get_threat_score(case: str, shape: Dict[str, List[Any]], groups: Dict[str, L
     except Exception as e:
         logger.warning("威胁评估错误，调用失败: " + str(e))
         return "500", (" ", "", " ")
+
 
 # 在main函数中添加测试代码
 if __name__ == "__main__":

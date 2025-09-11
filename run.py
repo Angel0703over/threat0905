@@ -5,7 +5,7 @@ from pre_track import PredictTrack as PreTrack
 from style import predict_style as PreStyle
 from group_shape import group_shape as GroupShape, detectee_group as DetecteeGroup
 from type import detectee_type as PreType
-from rag_tool  import get_threat_score
+from rag_tool  import get_threat_score as Get_threat_score
 from sample import sample_analysis as PreSample
 from typing import Union, List, Dict, Tuple
 import time
@@ -41,6 +41,9 @@ def predict_style(tracks: list[list[str]], groups: [str, list[str]]) -> Tuple[st
 
 def sample_analysis(desp, type_ability, in_track, important) -> Tuple[str, str]:
     return PreSample(desp, type_ability, in_track, important)
+
+def get_threat_score(desp,shape,groups,feature_list,type_ability,in_track,important_file) -> Tuple[str, Union[str, Tuple[float, str]]]:
+    return Get_threat_score(desp,shape,groups,feature_list,type_ability,in_track,important_file)
 
 def desp_trans(groups, shape, style, case):
     group = {}
@@ -103,5 +106,6 @@ print(sample)
 code, score = get_threat_score(case,shape,groups,feature_list,type_ability,new_tracks,important_file="resource/important.csv")
 print("威胁评估："+code)
 print(score)
+
 
 
